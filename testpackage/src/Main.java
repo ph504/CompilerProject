@@ -36,9 +36,9 @@ public class Main {
                     read2 = new File(inputFile);
                     read3 = new File(inputFile);
                 } else {
-                    read1 = new File("testpackage/parvizi/Model/TestCases.txt");
-                    read2 = new File("testpackage/parvizi/Model/TestCases.txt");
-                    read3 = new File("testpackage/parvizi/Model/TestCases.txt");
+                    read1 = new File("/Model/TestCases.txt");
+                    read2 = new File("/Model/TestCases.txt");
+                    read3 = new File("/Model/TestCases.txt");
                 }
 
                 if (outputFile == null)
