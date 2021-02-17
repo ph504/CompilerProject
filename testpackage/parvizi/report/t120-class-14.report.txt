@@ -1,0 +1,11 @@
+1c1,7
+< Semantic Error
+\ No newline at end of file
+---
+> entering method b of A
+> inside method c of Z
+> entering method a of A
+> inside method c of Z
+> entering method b of A
+> inside method c of Z
+> Value of Z counter is: 11

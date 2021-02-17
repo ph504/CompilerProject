@@ -1,0 +1,7 @@
+1,4c1
+< The following symbols are undefined:
+< Else1
+< 
+< [0x00400078]	0x142b0000  bne $1, $11, 0 [Else1-0x00400074]
+---
+> 1000

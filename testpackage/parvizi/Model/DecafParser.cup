@@ -1,0 +1,573 @@
+
+package Model;
+import java.util.*;
+import java.lang.*;
+import java_cup.runtime.*;
+import Model.operations.*;
+import Model.typeSystem.*;
+import Model.multipass.*;
+import Model.scope.*;
+import Model.cgen.*;
+
+parser code {:
+    private DecafScanner decafScanner;
+
+    public parser(DecafScanner decafScanner){
+        this.decafScanner = decafScanner;
+    }
+
+:}
+scan with {: return decafScanner.next_token(); :}
+
+
+terminal String ASSIGN , PLUS , MINUS , TIMES , DIVIDE , MOD ;
+terminal String GT , GE , LT , LE , EQ , NE , NOT , AND , OR ;
+terminal LPAREN , RPAREN , LBRACK , RBRACK , LCURLY , RCURLY , BRACKETS;
+terminal String SEMI , COMMA , DOT ;
+
+terminal NEW , NEWARRAY;
+terminal INT , DOUBLE , BOOL , STRING , VOID;
+terminal CLASS , IMPLEMENTS , EXTENDS , THIS , INTERFACE , NULL;
+
+terminal WHILE , IF , ELSE , FOR ;
+terminal RETURN , BREAK , CONTINUE;
+
+terminal PRINT , READINTEGER , READLINE;
+terminal DTOI , ITOD , BTOI , ITOB;
+
+terminal String INTLIT;
+terminal String DOUBLELIT;
+terminal String STRINGLIT;
+terminal String ID;
+terminal String TRUE, FALSE;
+terminal String PUBLIC , PRIVATE , PROTECTED;
+
+nonterminal ForStmt, Stmt, WhileStmt, IfStmt , ElseStmtEps, BreakStmt, ReturnStmt, PrintStmt, ContinueStmt, Call;
+
+nonterminal DSCP Constant, LValue, RValue, Expr, ExprEps, Type, Variable, VariableDecl, FunctionDecl, Field, ClassDecl, InterfaceDecl;
+nonterminal DecafAccessMode AccessMode;
+
+nonterminal  VariableDeclStar;
+
+nonterminal Program , Decl ,
+            Prototype , StmtBlock, DeclPlus, ExtendsEps,
+            ImplementsEps, ImplemetsComma,
+            PrototypeStar,  StmtStar;
+
+nonterminal String BooleanConstant;
+nonterminal List<DSCP> Actuals, Formals, ExprComma, VariableComma, FieldStar;
+
+precedence left     ELSE;
+precedence right    ASSIGN;
+precedence left     OR;
+precedence left     AND;
+precedence left     EQ , NE;
+precedence left     LT, LE, GT , GE;
+precedence left     PLUS, MINUS;
+precedence left     TIMES , DIVIDE, MOD;
+precedence right    NOT;
+precedence left     DOT, LBRACK;
+precedence left     LPAREN;
+
+
+Program ::=
+    Decl DeclPlus;
+
+DeclPlus ::=
+    Decl DeclPlus
+    | ;
+
+Decl ::=
+    VariableDecl
+    | FunctionDecl
+    | ClassDecl
+    | InterfaceDecl;
+
+FunctionDecl ::=
+    Type:t ID:funcID LPAREN {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newScope();
+            /*create label here.*/
+        }
+        else{
+            STSStack.stack.nextScope();
+            RESULT = OpHandler.funcDecl(funcID, t);
+        }
+    :}
+    Formals:arglist {:
+        if(!IPass.pass.equals("first")) {
+            OpHandler.giveArg(funcID, arglist);
+        }
+    :}
+    RPAREN{:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newFunctionScope(funcID);
+        }
+        else {
+            STSStack.stack.nextScope();
+        }
+    :}
+    StmtBlock {:
+            STSStack.stack.exitScope();
+            STSStack.stack.exitScope();
+    :}
+    // void function declaration. ---------------------- :
+    | VOID ID:funcID LPAREN {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newScope();
+        }
+        else{
+            STSStack.stack.nextScope();
+            RESULT = OpHandler.funcDecl(funcID, new VoidType());
+        }
+
+    :}
+    Formals:arglist {:
+
+        if(!IPass.pass.equals("first")){
+            OpHandler.giveArg(funcID, arglist);
+        }
+    :}
+    RPAREN {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newFunctionScope(funcID);
+        }
+        else {
+            STSStack.stack.nextScope();
+        }
+    :}
+    StmtBlock {:
+        STSStack.stack.exitScope();
+        STSStack.stack.exitScope();
+    :};
+
+
+Formals ::=
+    Variable:v VariableComma:vc {:
+        vc.add(v);RESULT = vc;
+    :}
+    | {:RESULT = new ArrayList<>();:};
+
+VariableComma ::=
+    COMMA Variable:v VariableComma:vc {:
+        vc.add(v); RESULT = vc;
+    :}
+    | {:RESULT = new ArrayList<>();:};
+
+ClassDecl ::=
+    CLASS ID:classID ExtendsEps ImplementsEps {:
+        if(IPass.pass.equals("first")){
+            RESULT = OpHandler.classDecl(classID);
+        }
+        else{
+            STSStack.stack.nextScope();
+        }
+    :}
+    LCURLY FieldStar RCURLY{:
+        STSStack.stack.exitScope();
+    :};
+
+ExtendsEps ::=
+    EXTENDS ID:id {:
+        if(IPass.pass.equals("second")){
+            OpHandler.extend(id);
+        }
+    :}
+    | ;
+
+ImplementsEps ::=
+    IMPLEMENTS ID {:/*id should be interface and exist*/:} ImplemetsComma
+    | ;
+
+ImplemetsComma ::=
+    COMMA ID ImplemetsComma
+    | ;
+
+FieldStar ::=
+    Field:f FieldStar:fs {:
+        fs.add(f);RESULT = fs;
+    :}
+    | {:RESULT = new ArrayList<>();:};
+
+Field ::=
+    AccessMode:am VariableDecl:vd {:
+        if(IPass.pass.equals("second")){
+            vd.setAccessMode(am);
+            RESULT = vd;
+        }
+    :}
+    | AccessMode:am FunctionDecl:f {:
+        if(IPass.pass.equals("second")){
+            f.setAccessMode(am);
+            RESULT = f;
+        }
+    :};
+
+AccessMode ::=
+    PRIVATE:am {:if(!IPass.pass.equals("first")){RESULT = OpHandler.createAccessMode(am);}:}
+    | PROTECTED:am {:if(!IPass.pass.equals("first")){RESULT = OpHandler.createAccessMode(am);}:}
+    | PUBLIC:am {:if(!IPass.pass.equals("first")){RESULT = OpHandler.createAccessMode(am);}:}
+    | {:if(!IPass.pass.equals("first")){RESULT = OpHandler.createAccessMode("default");}:};
+
+
+
+InterfaceDecl ::=
+    INTERFACE ID:interfaceID{:
+        if(IPass.pass.equals("first")){
+            OpHandler.interfaceDecl(interfaceID);
+        }
+        else
+            STSStack.stack.nextScope();
+    :}
+    LCURLY PrototypeStar RCURLY {:
+        STSStack.stack.exitScope();
+    :};
+
+PrototypeStar ::=
+    Prototype PrototypeStar
+    | ;
+
+Prototype ::=
+    Type ID:funcID LPAREN{:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newScope();
+        }
+        else
+            STSStack.stack.nextScope();
+    :} Formals {:
+        STSStack.stack.exitScope();
+    :}RPAREN SEMI
+    | VOID ID LPAREN{:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newScope();
+        }
+        else
+            STSStack.stack.nextScope();
+    :} Formals {:
+        STSStack.stack.exitScope();
+    :}RPAREN SEMI;
+
+StmtBlock ::=
+    {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newScope();
+        }
+        else {
+            STSStack.stack.nextScope();
+        }
+    :}LCURLY VariableDeclStar RCURLY{:
+        STSStack.stack.exitScope();
+    :};
+
+VariableDeclStar ::=
+    VariableDecl VariableDeclStar | StmtStar;
+
+StmtStar ::=
+    Stmt StmtStar
+    | ;
+
+Stmt ::=
+    ExprEps SEMI
+    | ForStmt
+    | WhileStmt
+    | IfStmt
+    | BreakStmt
+    | ContinueStmt
+    | ReturnStmt
+    | PrintStmt
+    | StmtBlock;
+
+VariableDecl ::=
+    Variable:v SEMI{:RESULT = v;:};
+
+Variable ::=
+    Type:t ID:idName
+    {:
+       RESULT = t;
+       if (IPass.pass.equals("second")) {
+            OpHandler.varDecl(t,idName);
+       }
+    :};
+
+Type ::=
+    INT         {:if(!IPass.pass.equals("first")){RESULT = new IntType();}:}
+    | DOUBLE    {:if(!IPass.pass.equals("first")){RESULT = new DoubleType();}:}
+    | BOOL      {:if(!IPass.pass.equals("first"))RESULT = new BoolType();:}
+    | STRING    {:if(!IPass.pass.equals("first"))RESULT = new StringType();:}
+    | ID:id        {:if(!IPass.pass.equals("first"))RESULT = OpHandler.idType(id);:}
+    | Type:t BRACKETS {:if(!IPass.pass.equals("first"))RESULT = new ArrayType(t);:};
+
+ForStmt ::=
+    {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newLoopScope();
+        }
+        else
+            STSStack.stack.nextScope();
+    :}
+    FOR LPAREN ExprEps SEMI {:
+        if(IPass.pass.equals("third")){
+            CodeGen.loopCgen();
+        }
+    :}
+    Expr:expr {:
+        if(IPass.pass.equals("third")){
+            OpHandler.condition(expr);
+            CodeGen.loopCondition();
+        } /*check condition put bne jump here*/
+    :}
+    SEMI {:
+        CodeGen.toggleInFUEXP();
+    :}
+    ExprEps{:
+        CodeGen.toggleInFUEXP();
+    :}
+    RPAREN Stmt {:
+        STSStack.stack.exitScope();
+        if(IPass.pass.equals("third")){
+            CodeGen.ForUpdateCgen();
+            CodeGen.loopCgen_Ending();
+        }
+    :};/*add update expression here and reset it.*/
+
+
+WhileStmt ::=
+    {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newLoopScope();
+        }
+        else
+            STSStack.stack.nextScope();
+    :}
+    WHILE{:
+        if(IPass.pass.equals("third")){
+            CodeGen.loopCgen();
+        }
+    :}
+    LPAREN Expr:expr {:
+        if(IPass.pass.equals("third")){
+            OpHandler.condition(expr);
+            CodeGen.loopCondition();
+        }
+    :}
+    RPAREN Stmt{:
+
+        STSStack.stack.exitScope();
+        if(IPass.pass.equals("third")){
+            CodeGen.loopCgen_Ending();
+        }
+    :};
+
+IfStmt ::=
+    {:
+        if(IPass.pass.equals("first")){
+            STSStack.stack.newScope();
+        }
+        else
+            STSStack.stack.nextScope();
+    :}
+    IF LPAREN Expr:expr {:
+        if(IPass.pass.equals("third")){
+            OpHandler.condition(expr);
+        }
+    :}
+    RPAREN {:
+        if(IPass.pass.equals("third")){
+            CodeGen.ifElseCgen();
+    }
+    :}
+    Stmt {:
+        if(IPass.pass.equals("third")){
+            CodeGen.ifElseCgen_ElseSection();
+        }
+    :}
+    ElseStmtEps {:
+        STSStack.stack.exitScope();
+        if(IPass.pass.equals("third")){
+            CodeGen.ifElseCgen_Ending();
+        }
+    :};
+
+ElseStmtEps ::=
+    ELSE Stmt
+    | ;
+
+ExprEps ::=
+    Expr:e {:
+        RESULT = e;
+    :}
+    | {:RESULT = new VoidType();:};
+
+ReturnStmt ::=
+    RETURN ExprEps:eeps SEMI {:
+        if(IPass.pass.equals("third")){
+            OpHandler.checkReturnType(eeps);
+        }
+    :};
+
+BreakStmt ::=
+    BREAK SEMI {:
+        if(IPass.pass.equals("third")){
+            OpHandler.breakSt();
+        }
+    :};
+
+ContinueStmt ::=
+    CONTINUE SEMI {:
+        if(IPass.pass.equals("third")){
+            OpHandler.contSt();
+        }
+    :};
+
+Call ::=
+    ID:funcID LPAREN {:
+        if(IPass.pass.equals("third"))
+            OpHandler.isArg = true;
+    :}
+    Actuals:args {:
+        if(IPass.pass.equals("third")){
+            OpHandler.isPrintSt = false;
+            OpHandler.callFunction(funcID,args);
+        }
+    :} RPAREN
+    | Expr DOT ID LPAREN Actuals RPAREN;
+
+PrintStmt ::=
+    PRINT LPAREN Expr:e {:
+        if(IPass.pass.equals("third")){
+            OpHandler.isPrintSt = true;
+            OpHandler.exprComma(e);
+        }
+    :}ExprComma:ec {:
+        if(IPass.pass.equals("third")){
+            OpHandler.isPrintSt = false;
+            OpHandler.printLine();
+            ec.add(e);
+            RESULT = ec;
+        }
+    :}
+    RPAREN SEMI;
+
+Actuals ::=
+    Expr:e {:
+        if(IPass.pass.equals("third")){
+            OpHandler.exprComma(e);
+        }
+    :}
+    ExprComma:ec {:
+        if(IPass.pass.equals("third")){
+            ec.add(e);RESULT = ec;
+        }
+    :}
+    | {:if(IPass.pass.equals("third")){RESULT = new ArrayList<>();}:};
+
+
+ExprComma ::=
+    COMMA Expr:e {:if(IPass.pass.equals("third")){OpHandler.exprComma(e);}:} ExprComma:ec {:ec.add(e);RESULT = ec;:}
+    | {:RESULT = new ArrayList<>();:};
+
+
+Expr ::=
+    LValue:lval ASSIGN Expr:e1
+    {:if (IPass.pass.equals("third")) {RESULT = OpHandler.assign(lval, e1);OpHandler.isArr = false; } :}
+    | Constant:c
+    {:if (IPass.pass.equals("third")) {RESULT = c;}:}
+    | THIS
+    | Call
+    | LPAREN Expr:e RPAREN
+    {:RESULT = e;:}
+    | Expr:e1 PLUS Expr:e2
+    {:if (IPass.pass.equals("third")) {RESULT = OpHandler.add(e1, e2);}:}
+    | Expr:e1 MINUS Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.subtract(e1, e2);}:}
+    | Expr:e1 TIMES Expr:e2
+    {:if (IPass.pass.equals("third")) {RESULT = OpHandler.multiply(e1, e2);}:}
+    | Expr:e1 DIVIDE Expr:e2
+    {:if (IPass.pass.equals("third")) {RESULT = OpHandler.divide(e1, e2);}:}
+    | Expr:e1 MOD Expr:e2
+    {:if (IPass.pass.equals("third")) {RESULT = OpHandler.mod(e1, e2);}:}
+    | MINUS Expr:e1
+    {: if (IPass.pass.equals("third")) {RESULT = OpHandler.negate(e1);}:}
+    | Expr:e1 GT:op Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.compare(e1, e2, op);}:}
+    | Expr:e1 LT:op2 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.compare(e1, e2, op2);}:}
+    | Expr:e1 LE:op3 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.compare(e1, e2, op3);} :}
+    | Expr:e1 GE:op4 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.compare(e1, e2, op4);} :}
+    | Expr:e1 EQ:op5 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.compare(e1, e2, op5);} :}
+    | Expr:e1 NE:op6 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.compare(e1, e2, op6);}:}
+    | Expr:e1 AND:op7 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.opBool(e1, e2, op7);} :}
+    | Expr:e1 OR:op8 Expr:e2
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.opBool(e1, e2, op8);}:}
+    | NOT:op9 Expr:e1
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.opBool(e1, new BoolType(), op9);}:}
+    | READINTEGER LPAREN RPAREN
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.readInteger();}:}
+    | READLINE LPAREN RPAREN
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.readLine();}:}
+    | NEW ID
+    {:/*new operation for class types only*/:}
+    | NEWARRAY LPAREN Expr:e COMMA Type:t RPAREN
+    {:if (IPass.pass.equals("third")){RESULT = OpHandler.newArray(e,t);}:}
+    | ITOD LPAREN Expr:intVal RPAREN
+    {:if(IPass.pass.equals("third")){RESULT = OpHandler.itod(intVal);}:}
+    | DTOI LPAREN Expr:doubleVal RPAREN
+    {:if(IPass.pass.equals("third")){RESULT = OpHandler.dtoi(doubleVal);}:}
+    | ITOB LPAREN Expr:intVal RPAREN
+    {:if(IPass.pass.equals("third")){RESULT = OpHandler.itob(intVal);}:}
+    | BTOI LPAREN Expr:boolVal RPAREN
+    {:if(IPass.pass.equals("third")){RESULT = OpHandler.btoi(boolVal);}:}
+    | RValue:e
+    {:RESULT = e;:} ;
+
+RValue ::=
+    ID:id{:/*read from memory and push tu stack the value of id*/
+        if (IPass.pass.equals("third")){
+            RESULT = OpHandler.fetchRvalue(id);
+        }
+    :}
+    | Expr DOT ID
+    | Expr:arr LBRACK Expr:e RBRACK {:
+        if(IPass.pass.equals("third")){
+            RESULT = OpHandler.arrayIndexingR(arr,e);
+        }
+    :};
+
+LValue ::=
+    ID:idName
+      {:if(IPass.pass.equals("third")){ RESULT = STSStack.stack.getDSCP(idName);}:}
+    | Expr:exp DOT ID:id {:/*exp should be the type of class and id should exist and be accessible.*/:}
+    | Expr:arr LBRACK Expr:e RBRACK {:if(IPass.pass.equals("third")){RESULT = OpHandler.arrayIndexingL(arr,e);OpHandler.isArr = true;}:};
+
+Constant ::=
+    INTLIT:idnumber
+      {:if(IPass.pass.equals("third")){RESULT = new IntType(); CodeGen.loadConstantIntCgen(Integer.parseInt(idnumber));  CodeGen.pushMips(3);}:}
+    | DOUBLELIT:doubleNumber
+      {:if(IPass.pass.equals("third")){RESULT = new DoubleType(); CodeGen.loadConstantDoubleCgen(Double.parseDouble(doubleNumber));  CodeGen.pushMipsDouble(4);}:}
+    | BooleanConstant:boolVal
+      {: if(IPass.pass.equals("third")){RESULT = new BoolType(); CodeGen.loadConstantBoolCgen( Boolean.parseBoolean(boolVal)); CodeGen.pushMips(3);}:}
+    | STRINGLIT:stringVal
+      {: if(IPass.pass.equals("third")){RESULT = new StringType();CodeGen.loadStringConstant(stringVal); CodeGen.pushMips(3)/* we store address of string in memory in to stack*/;} :}
+    | NULL;
+
+BooleanConstant ::=
+    TRUE:t      {:RESULT = t;:}
+    | FALSE:f   {:RESULT = f;:};
+
+
+
+
+
+
+
+
+
+
+
+
+

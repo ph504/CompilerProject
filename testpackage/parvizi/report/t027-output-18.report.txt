@@ -1,0 +1,9 @@
+1,4c1,3
+< The following symbols are undefined:
+< main
+< 
+< [0x00400014]	0x0c000000  jal 0x00000000 [main]           ; 188: jal main
+---
+> 10101010.00000000
+> 573920.06250000
+> 2.39701176

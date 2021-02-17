@@ -1,0 +1,8 @@
+1,5c1
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 4  [Address error in inst/data fetch]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+---
+> 6.00000000

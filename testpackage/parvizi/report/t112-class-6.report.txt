@@ -1,0 +1,7 @@
+1c1,3
+< Semantic Error
+\ No newline at end of file
+---
+> entering method a of A
+> inside method b
+> exiting method a of A

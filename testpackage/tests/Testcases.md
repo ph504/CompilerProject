@@ -1,0 +1,706 @@
+
+Tokens (Lexer)
+==============
+
+## Dependencies
+comment <- id
+comment <- operator
+double <- int op
+int <- id
+literal <- id int double string keyword
+id <- keyword
+ws <- keyword op id
+
+## Current Order
+1. id
+2. keyword
+3. ws
+4. int
+5. int-hex
+6. double
+7. operator
+8. string
+9. literal
+10. comment
+11. simple
+
+
+Syntax (Parser)
+===============
+
+- [ ] program
+  - [x] no decl
+  - [ ] _too many decl (n = ?)_
+  - [ ] statement inside program
+    - [x] empty statement (lone semicolon)
+    - [x] simple exprs
+    - [x] calls
+- [ ] function declaration
+  - [ ] wrong function id
+    - [x] no id
+    - [x] keyword
+  - [ ] args (torture of `formals`)
+    - [ ] plain types
+      - [x] valid
+      - [x] no id
+    - [x] invalid keywords
+    - [x] no comma between args
+    - [ ] _a lot of valid args (n = ?)_
+    - [x] semicolon inside formals
+  - [ ] return types
+    - [x] plain types
+    - [x] void
+      - [ ] void []
+    - [x] ident types (classes and interfaces)
+    - [x] invalid keywords
+    - [ ] arrays
+      - [x] of plain types
+      - [x] of ids
+      - [x] of `this`
+  - [ ] braces
+    - [x] no braces
+    - [x] semicolon before braces
+    - [x] different indentations
+    - [x] extra paired braces
+    - [x] extra unpaired braces
+- [ ] variable declaration
+  - [ ] types
+    - [x] plain
+    - [x] `void`
+      - [ ] `void` []
+    - [ ] arrays
+      - [x] plain types
+      - [x] ids
+      - [x] space between brackets
+    - [x] arrays with size argument
+      - [x] plain types
+      - [x] ids
+  - [ ] identifiers
+    - [x] keywords as id
+      - [x] type keywords
+      - [x] `this`
+      - [x] control structures
+    - [x] extra type
+      - [x] or id
+  - [ ] global
+    - [x] plain | id | array
+    - [x] invalid
+  - [ ] initializations
+    - [x] with constant exprs
+    - [x] with ids
+    - [x] with `null`
+    - [x] with `new` keyword
+    - [x] _with `new` expr (+dep on "expression")_
+  - [x] no semicolon
+    - [x] extra semicolons (ok)
+  - [ ] multiple declarations
+    - [x] separated with commas
+    - [x] with valid initializers
+- [ ] class declaration
+  - [ ] plain
+    - [ ] name of class:
+      - [x] id (valid)
+      - [x] type
+      - [x] keyword
+  - [ ] extending
+    - [x] id (valid)
+    - [x] type
+    - [x] keyword
+    - [x] multiple (invalid)
+      - [x] nothing
+      - [x] with comma
+      - [x] no comma
+  - [ ] implementing
+    - [x] id (valid)
+    - [x] type
+    - [x] keyword
+    - [ ] multiple
+      - [x] valid
+      - [x] nothing
+      - [x] no comma
+      - [ ] _too many (n = ?)_
+  - [ ] combo of above
+    - [x] only one valid
+    - [x] both valid
+    - [x] reorder `implements` and `extends`
+    - [x] multiple `implements` and `extends`
+  - [x] braces
+    - [x] missing
+      - [x] left
+      - [x] right
+      - [x] both
+        - [x] semicolon
+    - [ ] extra
+      - [x] paired
+      - [x] unpaired
+  - [ ] fields
+    - [ ] ~~empty~~ (already covered)
+    - [x] function declaration
+    - [x] variable declaration
+    - [ ] ~~mix of both~~ (too trivial)
+- [ ] interface declaration
+  - [x] perfectly valid
+  - [ ] id
+    - [x] types instead
+    - [x] keywords instead
+  - [ ] braces
+    - [x] semicolon instead of braces
+    - [x] nested braces
+  - [ ] prototypes
+    - [x] empty
+    - [x] dangling semicolons
+- [ ] interface prototype
+  - +dep on "interface declaration"
+  - [x] valid
+  - [x] no semicolon
+    - [x] braces instead
+  - [x] `void`
+  - [x] no id
+    - [x] type instead
+      - [x] array
+    - [x] keyword instead
+- [ ] statement block
+  - [ ] statements -> +dep on "expr"
+    - [x] empty statements
+    - [x] ~~"if" | "while" | "for" | "break" | "return" | "print"~~ (already covered)
+    - [x] nesting
+      - [ ] too many nested blocks (n == ?)
+  - [x] "class definition" inside (+dep)
+    - [x] start
+    - [x] middle
+  - [x] "interface declaration" inside (+dep)
+  - [ ] "variable declarations" inside (+dep)
+    - [x] coming first
+    - [x] coming after statements
+- [ ] expression
+  - [ ] assignment
+    - [ ] valid
+      - [ ] lval = expr
+        - [x] id = id
+        - [x] id = `constant`
+        - [ ] expr\[expr\] = expr
+          - [x] id\[id\] = `constant`
+          - [x] id\[`constant`\] = id
+          - [x] _expr\[`constant`\] = expr_
+          - [x] _expr\[expr\] = expr_
+        - [ ] expr.id = expr
+          - [x] id.id = `constant`
+          - [x] _expr.id = expr_
+    - [ ] invalid
+      - [x] type = expr
+      - [x] `void` =  expr
+      - [ ] expr!lval = expr
+        - [x] `constant`
+        - [x] call
+        - [x] `this`
+        - [x] arithmetic
+        - [ ] (expr)
+          - [x] id
+          - [x] arithmetic
+  - [ ] array accessor
+    - [x] id\[id\] = id\[id\]
+    - [x] id = id\[id\]
+  - [ ] constants
+    - [x] < multiple lines of constants >
+    - [x] < some constant with no semicolons >
+  - [ ] arithmetic
+    - [ ] simple binary operators
+      - [ ] some valid exprs
+        - [x] < multiple lines of simple operators >
+        - [x] < multiple lines of chains of operators >
+        - [x] expr + `this`
+      - [ ] some invalid exprs
+        - [x] ++ / -- / -+
+        - [x] _(but +- can be ok)_
+        - [x] expr + keyword (granted, this *is* torture :)
+          - [x] return
+      - [ ] using parentheses for priorities
+        - [x] < multiple lines of valid ones >
+        - [x] mismatched parentheses
+        - [x] _empty parenthesis_
+    - [ ] simple unary operators
+      - [ ] some valid exprs
+        - [x] `!` and `-`
+          - [x] to ids
+          - [x] to constants
+        - [x] `this` ??
+      - [ ] some invalid exprs
+        - [x] applied to keywords
+        - [ ] ??
+    - [x] using both
+      - [x] < some valid chains of expressions >
+      - [x] < some invalid chains of expressions >
+  - [ ] dot
+    - [ ] expr.id
+      - [x] id.id
+      - [x] arithmetic.id
+      - [x] id().id
+      - [x] id(keyword).id
+    - [ ] expr.non_id
+      - [x] id.(expr)
+  - [ ] call
+    - [ ] valid
+      - [x] ident ()
+      - [x] ident (expr*)
+      - [x] ident.ident ()
+    - [ ] expr!dot ()
+      - [x] this ()
+      - [x] expr ()
+        - [x] arithmetic ()
+        - [x] (ident) ()
+        - [x] `constant` ()
+  - [ ] intrinsics
+    - [ ] `ReadInteger`
+      - [x] valid
+      - [x] ReadInteger (expr)
+      - [x] ReadInteger = expr;
+    - [ ] `ReadLine`
+      - [x] valid
+      - [x] ReadLine (expr)
+  - [ ] new
+    - [x] valid
+      - [x] new id
+    - [ ] invalid
+      - [x] new type
+      - [x] new id \[ \]
+      - [x] new id \[ expr \]
+      - [x] new \[ \] id
+  - [ ] NewArray
+    - [x] NewArray (expr, type)
+    - [x] NewArray (expr, id)
+    - [x] NewArray (expr, id \[\])
+- [ ] statement
+    - [ ] if
+      - [x] if expr ;
+      - [x] if ( ) ;
+      - [x] if ( expr ) ;
+      - [x] if ( expr ) else
+      - [x] if ( expr ) ; else ;
+      - [x] if ( keyword ) ;
+      - [x] if ( expr ) statement!block
+      - [x] if ( expr ) statement!block else statement!block
+      - [x] if ( expr ) statement!block else block
+      - [x] if ( expr ) block else statement!block
+      - [x] if ( expr ) block else block
+      - [x] if ( expr ) if ( expr ) ; else ; else ;
+      - [x] if ( expr ) { if ( expr ) statement!block else {} } else {}
+      - [x] if ( expr = expr ) ; else ;
+      - [x] if ( if ( expr ) ; ) ;
+      - [x] if ( expr; ) ;
+      - [x] if {}
+      - [x] if ( {} )
+    - [ ] while
+      - [x] while expr ;
+      - [x] while ( expr ) ;
+      - [x] while ( keyword ) ;
+      - [x] while ( expr ) statement!block
+      - [x] while ( expr ) block
+      - [x] while ( expr ) { if ( expr ) ; }
+      - [x] if ( expr ) while ( expr ) ;
+      - [ ] some valid real world whiles
+        - [x] while (min < max) max = find(a, b);
+    - [ ] for
+      - [x] for ( ;; ) ;
+      - [x] for ( ; expr ; ) ;
+      - [x] for ( ; keyword ; ) ;
+      - [x] for ( expr ; expr ; ) ;
+      - [x] for ( expr ; ; expr ) ;
+      - [x] for ( ; expr ; expr ) ;
+      - [x] for ( expr ; expr ; expr ) ;
+      - [x] for ( expr ; expr ; expr ; ) ;
+      - [x] for ( ; expr ; ) statement!block
+      - [x] for ( ; expr ; ) block
+      - [x] for ( ; expr ; ) while ( expr ) if ( expr ) ;
+      - [ ] some valid real world fors
+        - [x] for (a = 1; a < 10; a = a + 1) b = b + a;
+    - [ ] break
+      - [x] break;
+      - [x] BREAK; (id)
+      - [x] { break; }
+      - [x] { break }
+    - [ ] return
+      - [x] return;
+      - [x] return expr;
+      - [x] RETURN;
+      - [x] RETURN expr; (variable declaration)
+    - [ ] print
+      - [x] Print ()
+      - [x] Print ( expr )
+      - [x] Print ( expr, expr )
+      - [x] Print ( expr ; expr ; expr )
+- [ ] simple programs
+  - [ ] simple procedural
+  - [ ] OO with inheritance and interfaces
+
+
+## Dependencies
+program <- function
+program <- variable
+statement block <- expr
+class <- function
+class <- variable
+prototype <- interface
+statement block <- class
+statement block <- interface
+statement block <- statement
+program <- statement
+statement <- if while for break return print
+simple programs <- program class interface statement
+
+## Current Order
+1. function
+2. expression
+   - assignment
+   - arithmetic
+   - dot
+   - call
+   - intrinsics
+   - new
+   - NewArray
+3. variable
+4. statement
+   - if
+   - while
+   - for
+   - break
+   - return
+   - print
+5. class
+6. interface
+7. interface prototype
+8. statement block
+9. program
+10. simple programs
+
+
+Semantics & Runtime (Code Generator)
+====================================
+
+- [x] 1: **Input** (2)
+  - [x] plain input with no output (test it has the built-ins == dummy)
+    - [x] 1 for `ReadLine` = 1
+    - [x] 1 for `ReadInteger` = 1
+  - [x] test different aspects
+    - [x] integer:
+      - [x] single digits = 1
+      - [x] negative numbers = 1
+      - [x] hex integer
+        - [x] positive hex = 1
+        - [x] negative hex = 1
+      - [x] -0 = 1
+    - [x] string:
+      - [x] single character = 1
+      - [x] single words = 0! _(accidentally deleted or forgotten)_
+      - [x] simple sentences = 1
+      - [x] sentence containing `\`-escaped characters = 2
+      - [x] empty line = 1
+- [x] 2: **Output** (2)
+  - [x] plain output with no input (output correctness)
+    - [x] int literals
+      - [x] 0 & -0 = 1
+      - [x] -10 < x < 10 = 1
+      - [x] -100000 < x < -10000 & 10000 < x < 100000 = 1
+      - [x] INT_MAX = 1
+      - [x] INT_MIN = 1
+    - [x] double literals <| REVISE from: t025-input16 |>
+      - [x] 0 & -0 = 1
+      - [x] Pi (3.14) & some more = 1
+      - [x] <| _some numbers consistent between float & double_ |>
+        - [x] normal notation = 1
+        - [x] scientific notation = 1
+    - [x] bool literals
+      - [x] true & false = 1
+    - [x] string literals
+      - [x] single characters (separate `Print`s) = 1
+      - [x] single words (separate `Print`s) = 1
+      - [x] simple sentences
+        - [x] separate `Print` & as arguments to one `Print` = 1
+      - [x] long word = 1
+      - [x] long sentence = 1
+  - [x] input/output consistency
+    - [x] integer:
+      - [x] random numbers = 1
+    - [x] string:
+      - [x] some simple sentences = 1
+      - [x] one long sentence = 1
+- [x] 3: Integer Assignment & Arithmetics (2)
+  - [x] `int` variable (dummy) = 1
+  - [x] assignment of literals (no input)
+    - [x] 1 with no output (dummy) = 1
+    - [x] some with outputs
+      - [x] some random numbers = 2
+  - [x] basic operators (using I/O):
+    - [x] `+` = 2
+    - [x] `-`
+      - [x] unary = 2
+      - [x] binary = 2
+    - [x] `*` = 2
+    - [x] `/` = 3
+    - [x] `%`
+      - [x] check: + % + = 1
+      - [x] check: + % - = 1
+      - [x] check: - % - = 1
+      - [x] check: - % + = 1
+  - [x] combo (chain) operators
+    - [x] some un-parenthesized expressions = 1
+    - [x] some parenthesized expressions = 1
+- [x] 4: Boolean Assignment & Operations (1)
+  - [x] `bool` variable = 1 (dummy)
+  - [x] assignment of literals (no input)
+    - [x] 1 with no output (e.x. true) = 1 (dummy)
+    - [x] 1 with output (e.x. false) = 1
+  - [x] basic operators (using output only)
+    - [x] `&&` = 1
+    - [x] `||` = 1
+    - [x] `==` = 1
+    - [x] `!` = 1
+  - [x] combo (chain) operators (with variables)
+    - [x] some un-parenthesized expressions = 1
+    - [x] some parenthesized expressions = 1
+  - [x] arithmetics
+    - [x] integers (on random integers):
+      - [x] `>` = 1
+      - [x] `>=` = 1
+      - [x] `<` = 1
+      - [x] `<=` = 1
+      - [x] `==` = 1
+      - [x] `!=` = 1
+    - [x] doubles (on random doubles -- no case for concern)
+      - [x] `>` = 1
+      - [x] `>=` = 1
+      - [x] `<` = 1
+      - [x] `<=` = 1
+      - [x] `==` = 1 <| _warning_ |>
+      - [x] `!=` = 1 <| _warning_ |>
+- [x] 5: Double Assignment & Arithmetics (2) --> Need to implement in C
+  - [x] `double` variable (dummy) = 1
+  - [x] assignment of literals (no input)
+    - [x] 1 with no output = 1
+    - [x] some with outputs
+      - [x] <| _some numbers consistent between float & double_ |> = 1
+    - [x] basic operators (using output)
+        - [x] `+` = 1
+        - [x] `-`
+          - [x] binary = 1
+          - [x] unary = 1
+        - [x] `*` = 1
+        - [x] `/` = 1
+  - [x] combo (chain) operators
+    - [x] some un-parenthesized expressions = 1
+    - [x] some parenthesized expressions = 1
+- [x] 6: General Expressions & Type Conversions & Assignments (4)
+  - [x] single conversions (no input)
+      - [x] int -> double = 1
+      - [x] int -> bool = 1
+      - [x] double -> int = 1
+      - [x] bool -> int = 1
+  - [x] chaining casts
+    - [x] double -> int -> bool = 1
+    - [x] int -> bool -> int = 1
+    - [x] bool -> int -> bool = 1
+    - [x] int -> double -> int = 1
+  - [x] combo expressions with type-casts in between
+    - [x] some random expressions = 3
+  - [x] correct `lval = lval = expr` semantics = 1
+- [x] 7: Strings & Their Assignment
+  - [x] `string` variable (dummy)
+  - [x] assignment of literals (no input, but output)
+    - [x] single characters = 1
+    - [x] single words = 1
+    - [x] simple sentences = 1
+    - [x] `\`-escaped characters = 1
+  - [x] string comparisons
+    - [x] input strings with literals (uppercase & lowercase)
+      - [x] `==` = 1
+      - [x] `!=` = 1
+    - [x] input strings with themselves (same case)
+      - [x] `==` = 1
+      - [x] `!=` = 1
+    - [x] empty vs. empty = 1
+- [x] 8: Plain Class Implementation -- No Inheritance or Polymorphism (3)
+  - [x] a simple `class` declaration (dummy) = 1
+    - [x] instantiation = 1
+  - [x] simple methods
+    - [x] a method inside class which accesses the field
+      - [x] `Print` = 1
+      - [x] get = 1
+      - [x] set = 1
+      - [x] using `this` = 1
+  - [x] interconnected methods
+    - [x] method a of A calling method b = 1
+    - [x] method a of A calling method c from Z = 1
+    - [x] method a of A calling method b which in turn calls c from Z = 1
+    - [x] chaining returns of 3 (or more) consecutive calls = 1
+  - [x] passing an object of a class to a method of:
+    - [x] another class = 1
+    - [x] same class = 1
+    - [x] passed down a chain of methods starting with:
+      - [x] same class = 1
+      - [x] another class = 1
+    - [x] aggregating arguments from fields along the way
+      - [x] simple data types = 1
+  - [x] chaining calls to methods (o.a(1).a(2).b(3))
+    - [x] increment some inner field along the way = 1
+- [x] 9: Arrays (4)
+  - [x] simple array declaration with _instantiation_ (dummy)
+    - [x] one `int` & `bool` & `string` = 1
+    - [x] one `double` = 1
+  - [x] do these:
+    - [x] array instantiation & filling = 1
+    - [x] get access to elements (careful not to violate bounds)
+      - [x] normal read/write = 1
+      - [x] use expressions as indices = 1
+    - [x] => for each array of types:
+      - [x] `int`
+        - [x] use an element as index = 1
+      - [x] `double` = 1
+      - [x] `bool` = 1
+      - [x] `string` = 1
+      - [x] some class defined = 1
+  - [x] nested arrays
+    - [x] nested array of `int`
+      - [x] instantiate/read/write = 1
+      - [x] => for:
+        - [x] doubly nested
+        - [x] n-ary nested = 1
+    - [x] nested array of (simple) objects
+      - [x] instantiate/read/write = 1
+  - [x] dangling arrays (`NewArray` expression on the fly) = 1
+- [x] 10: Conditionals (3)
+  - [x] simple `if` with no I/O (dummy) = 1
+  - [x] `if` on literals
+    - [x] integer = 1
+    - [x] double = 1
+    - [x] boolean = 1
+    - [x] string = 1
+  - [x] `if` on variables
+    - [x] pre-baked boolean
+      - [x] some comparisons = 1
+    - [x] integer comparisons = 1
+    - [x] assignment inside condition
+      - [x] parenthesized = 1
+      - [x] un-parenthesized = 1
+  - [x] `if` on result of function calls
+    - [x] object methods (plain objects - no inheritance) = 1
+    - [x] global functions
+      - [x] => returning:
+        - [x] integer = 1
+        - [x] double = 1
+        - [x] string = 1
+        - [x] bool = 1
+  - [x] -> covering various structures:
+    - [x] plain if
+      - [x] with no block
+      - [x] with block
+    - [x] with else
+      - [x] with no block
+      - [x] with both blocks
+    - [x] nested
+      - [x] outer blocked = 1
+      - [x] inner blocked = 1
+      - [x] both blocked = 1
+      - [x] with else
+      - [x] without else = 1
+- [x] 11: Loops (4)
+  - [x] `for`
+    - [x] with no I/O (dummy) = 1
+    - [x] only condition = 1
+    - [x] condition + initialization = 1
+    - [x] condition + step = 1
+      - [x] non-blocked (simple)
+    - [x] full = 1
+    - [x] blocked
+    - [x] `break` = 1
+    - [x] `if` `for` = 1
+    - [x] `for` `if` = 1
+  - [x] `while`
+    - [x] with no I/O (dummy) = 1
+    - [x] block = 1
+    - [x] no block = 1
+    - [x] `break` = 1
+    - [x] `if` `while` = 1
+    - [x] `while` `if` = 1
+- [x] 12: Function Invocation (3)
+  - [x] simple calls
+    - [x] no args = 1
+    - [x] one arg = 1
+    - [x] three args = 1
+    - [x] n args = 1
+    - [x] void
+    - [x] int = 1
+    - [x] double = 1
+    - [x] bool = 1
+    - [x] string = 1
+    - [x] object (simple - no inheritance) = 1
+  - [x] recursive calls
+    - [x] non-tail calls = 1
+      - [x] a deep call tree (one branch only) = 1
+    - [x] tail calls = 1
+  - [x] nested calls
+    - [x] of integers = 1
+    - [x] of doubles = 1
+  - [x] ~~call `main` inside `main` (careful for indefinite loops)~~ (impossible without global state)
+- [x] 13: _Inheritance_ (+2)
+  - [x] simple inheritance with no I/O (dummy) = 1
+  - [x] one field in parent inherited down to the last child
+    - [x] two-level inheritance = 1
+    - [x] three-level inheritance = 1
+    - [x] n-level = 1
+  - [x] one field in each descendant
+    - [x] two-level = 1
+    - [x] three-level = 1
+    - [x] n-level = 1
+- [x] 14: _Function Invocation with Inheritance_ (+5)
+  - [x] call methods on:
+    - [x] base handle & derived handle
+    - [x] => on:
+      - [x] one level of indirection = 1
+      - [x] two levels of indirection = 1
+      - [x] n levels of indirection = 1
+  - [x] chaining calls to methods (methods should have base return type)
+    - [x] increment some inner field along the way = 1
+  - [x] calling base object's methods on array elements = 1
+  - [ ] proper var decl: inside method of a base class (method not overridden)
+    - [ ] shadowing a field of base
+      - [ ] called on the derived object with handle of the base
+    - [ ] shadowing a field of derived <| ;D |>
+      - [ ] called on the derived object with handle of the base
+  - [ ] inside method of a derived class
+    - [ ] overridden method
+    - [ ] non-overridden (original) method
+- [x] 15: ~~Interfaces~~ (!7)
+- [x] 16: Proper Variable Declarations Anywhere (3)
+  - [x] inside function
+    - [x] non-shadowing (sort of a dummy) = 1
+  - [x] inside method of a simple class (no inheritance)
+    - [x] non-shadowing = 1
+    - [x] shadowing a class field = 1
+  - [x] inside block
+    - [x] bare block
+      - [x] inside function
+        - [x] non-shadowing = 1
+        - [x] shadowing function-local variable = 1
+      - [x] inside method of simple class
+        - [x] non-shadowing = 1
+        - [x] shadowing function-local variable = 1
+        - [x] shadowing class-local variable = 1
+    - [x] `if`'s block
+      - [x] non-shadowing = 1
+      - [x] shadowing function-local variable = 1
+      - [x] `else`'s block shadowing = 1
+    - [x] `for`s block
+      - [x] non-shadowing = 1
+      - [x] shadowing function-local variable = 1
+    - [x] `while`s block
+      - [x] non-shadowing = 1
+      - [x] shadowing function-local variable = 1
+- [x] 17: _Global Variables_ (+2)
+  - [x] one simple declaration (dummy) = 1
+  - [x] write inside one function, use inside another:
+    - [x] integer = 1
+    - [x] double = 1
+    - [x] boolean = 1
+    - [x] string = 1
+    - [x] array of `int` = 1
+    - [x] shadowing locals = 1
+  - [x] usage inside simple class = 1

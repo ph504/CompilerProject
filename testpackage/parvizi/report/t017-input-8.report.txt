@@ -1,0 +1,10 @@
+1,4c1,4
+< The following symbols are undefined:
+< main
+< 
+< [0x00400014]	0x0c000000  jal 0x00000000 [main]           ; 188: jal main
+---
+> this is a test of I/O sanity
+> another sentence with the same goal in mind
+> ...
+> "catatonic schizophrenic" is the secret word ;)

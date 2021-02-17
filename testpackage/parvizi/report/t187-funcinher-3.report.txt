@@ -1,0 +1,15 @@
+1c1,11
+< Syntax Error
+\ No newline at end of file
+---
+> A.action_s()
+> A.action_s()
+> A.action_o()
+> B.action_o()
+> A.action_s()
+> A.action_o()
+> B.action_s()
+> B.action_s()
+> B.action_o()
+> 5
+> 4

@@ -1,0 +1,24 @@
+2,20c2,4
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 4  [Address error in inst/data fetch]  occurred and ignored
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 4  [Address error in inst/data fetch]  occurred and ignored
+< 0
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 4  [Address error in inst/data fetch]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0
+---
+> -5
+> 10
+> 10000

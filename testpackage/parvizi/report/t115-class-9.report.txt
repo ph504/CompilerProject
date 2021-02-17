@@ -1,0 +1,9 @@
+1c1,5
+< Semantic Error
+\ No newline at end of file
+---
+> entering method b of A
+> entering method a of A
+> entering method b of A
+> entering method a of A
+> 7

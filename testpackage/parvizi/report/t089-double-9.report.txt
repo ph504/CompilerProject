@@ -1,0 +1,26 @@
+1,21c1,3
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+---
+> -8783.12109375
+> -12002743.00000000
+> -1002828.56250000

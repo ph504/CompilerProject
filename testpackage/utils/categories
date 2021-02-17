@@ -1,0 +1,17 @@
+preview:0:0
+input:1:2
+output:2:2
+integer:3:3
+boolean:4:3
+double:5:3
+expr:6:4
+string:7:3
+class:8:3
+array:9:4
+cond:10:3
+loop:11:5
+func:12:5
+inher:13:2:+
+funcinher:14:5:+
+vardecl:16:3
+global:17:2:+

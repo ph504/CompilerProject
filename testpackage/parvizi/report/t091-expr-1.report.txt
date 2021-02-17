@@ -1,0 +1,49 @@
+2,41c2,3
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 4  [Address error in inst/data fetch]  occurred and ignored
+< 0.00000000
+<   Exception 5  [Address error in store]  occurred and ignored
+<   Exception 4  [Address error in inst/data fetch]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0.00000000
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0.00000000
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0.00000000
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0.00000000
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+< 0.00000000
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+<   Exception 7  [Bad data address]  occurred and ignored
+---
+> 1.00000000
+> 10000.00000000
+42a5,8
+> -1.00000000
+> -10000.00000000
+> 32768.00000000
+> -32768.00000000

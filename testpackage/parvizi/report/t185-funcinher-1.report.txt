@@ -1,0 +1,7 @@
+1c1,3
+< Syntax Error
+\ No newline at end of file
+---
+> A.test()
+> B.test()
+> B.test()

@@ -1,0 +1,11 @@
+1,5c1,4
+< The following symbols are undefined:
+< endLenCalculation
+< checkEqual
+< 
+< [0x004002fc]	0x10100000  beq $0, $16, 0 [endLenCalculation-0x004002fc]; 250: beq $s0, 0, endLenCalculation
+---
+> false
+> true
+> true
+> false

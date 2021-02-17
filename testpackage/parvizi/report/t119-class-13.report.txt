@@ -1,0 +1,7 @@
+1c1,3
+< Semantic Error
+\ No newline at end of file
+---
+> entering method c of Z
+> entering method a of A
+> Value of counter is: 1

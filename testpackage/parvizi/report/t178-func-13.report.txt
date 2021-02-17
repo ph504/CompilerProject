@@ -1,0 +1,6 @@
+1c1,2
+< Semantic Error
+\ No newline at end of file
+---
+> 30.00000000
+> 10.80000019

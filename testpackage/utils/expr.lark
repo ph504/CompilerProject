@@ -1,0 +1,90 @@
+
+?exprs : expr (";" expr)* [";"]
+
+expr : expr1
+
+?expr1 : assignment | expr2
+assignment.1 : lval "=" expr2
+
+?expr2 : or | expr3
+or.2         : expr2 "||" expr3
+
+?expr3 : and | expr4
+and.3        : expr3 "&&" expr4
+
+?expr4 : equal | nequal | expr5
+equal.4      : expr5 "==" expr5
+nequal.4     : expr5 "!=" expr5
+
+?expr5 : lt | lte | gt | gte | expr6
+lt.5         : expr6 "<" expr6
+lte.5        : expr6 "<=" expr6
+gt.5         : expr6 ">" expr6
+gte.5        : expr6 ">=" expr6
+
+?expr6 : add | sub | expr7
+add.6        : expr6 "+" expr7
+sub.6        : expr6 "-" expr7
+
+?expr7 : mult | div | mod | expr8
+mult.7       : expr7 "*" expr8
+div.7        : expr7 "/" expr8
+mod.7        : expr7 "%" expr8
+
+?expr8 : neg | not | expr9
+neg.8        : "-" expr9
+not.8        : "!" expr9
+
+?expr9 : lval | atom
+lval.9 : ident
+       | lval "[" expr "]"       -> index
+       | dot
+
+atom.10 : constant
+        | this
+        | call
+        | "(" expr ")"
+        | "ReadInteger" "(" ")"            -> read_integer
+        | "ReadLine" "(" ")"               -> read_line
+        | "new" ident                      -> new
+        | "NewArray" "(" expr "," type ")" -> new_array
+
+dot : lval "." ident
+
+call : ident "(" actuals ")"
+     | dot "(" actuals ")"
+
+actuals : (expr ("," expr)*)?
+
+type : "int"     -> int
+     | "double"  -> double
+     | "bool"    -> bool
+     | "string"  -> string
+     | ident
+     | type "[" "]" -> array
+
+this : "this"
+
+constant : INT_CONSTANT -> int_c
+         | DOUBLE_CONSTANT -> double_c
+         | STRING_CONSTANT -> string_c
+         | bool_c
+         | "null" -> null
+
+bool_c : "true" -> true | "false" -> false
+
+ident : IDENTIFIER
+
+INT_CONSTANT : INT_BASE16 | INT_BASE10
+INT_BASE16 : /0[xX][0-9a-fA-F]+/
+INT_BASE10 : /[0-9]+/
+
+DOUBLE_CONSTANT : INT_BASE10 "." INT_BASE10? (/[eE][+-]?/ INT_BASE10)?
+
+STRING_CONSTANT : /"[^\n]*?"/
+
+IDENTIFIER : /[a-zA-Z][a-zA-Z0-9_]*/
+
+
+%import common.WS
+%ignore WS

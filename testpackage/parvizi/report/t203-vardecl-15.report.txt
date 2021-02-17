@@ -1,0 +1,10 @@
+1c1,6
+< Semantic Error
+\ No newline at end of file
+---
+> 5
+> 5
+> 5
+> 5
+> 5
+> 0
